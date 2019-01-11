@@ -11,6 +11,7 @@ public class MicInput : MonoBehaviour
     void Start()
     {
         //string[] mics = Microphone.devices;
+        Debug.Log(Microphone.devices[0]);
 
         audio = GetComponent<AudioSource>();        
         micName = Microphone.devices[0];
@@ -24,7 +25,7 @@ public class MicInput : MonoBehaviour
 
     void Update()
     {
-        int sampleWindow = 128;        
+        int sampleWindow = 25;        
         int micPos = Microphone.GetPosition(micName) - (sampleWindow + 1);
         if(micPos < 0)
         {
@@ -34,15 +35,27 @@ public class MicInput : MonoBehaviour
         float[] waveData = new float[sampleWindow];
         audio.clip.GetData(waveData, micPos);
         float levelMax = 0;
-        for (int i = 0; i < sampleWindow; i++)
+        float levelMax_abs = 0;
+        string temp = "";
+        for (int i = 0; i < waveData.Length; i++)
         {
+            temp += waveData[i] + ", ";
+            levelMax_abs += Mathf.Abs(waveData[i]);
+
             if (levelMax < waveData[i])
             {
                 levelMax = waveData[i];
             }
         }
+        levelMax_abs = levelMax_abs / sampleWindow;
 
-        loudness = levelMax;
+        
+        //Debug.Log(temp);
+        //Debug.Log(levelMax);
+        //Debug.Log(levelMax_abs);
+        
+
+        loudness = levelMax_abs;
     }
 
     public float getLoudness()

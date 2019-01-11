@@ -255,6 +255,7 @@
     <Compile Include="Assets\Scripts\MicInput.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\ScreenDarken.cs" />
+    <Compile Include="Assets\Scripts\StartMenu.cs" />
     <Compile Include="Assets\Scripts\TextObj.cs" />
     <Compile Include="Assets\Scripts\Weapons.cs" />
     <None Include="Assets\LeapMotion\Core\Resources\LeapCG.cginc" />

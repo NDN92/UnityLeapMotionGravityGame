@@ -48,6 +48,23 @@ public class Player : MonoBehaviour {
         }
         centerX = leftHandPos.x + ((rightHandPos.x - leftHandPos.x) / 2f);
         targetPos = new Vector3(centerX, centerY, transform.position.z);
+        //Außerhalb des Spielbereiches X
+        if (targetPos.x < game.rangeLevelMin.x)
+        {
+            targetPos.x = game.rangeLevelMin.x;
+        } else if(targetPos.x > game.rangeLevelMax.x)
+        {
+            targetPos.x = game.rangeLevelMax.x;
+        }
+        //Außerhalb des Spielbereiches Y
+        if (targetPos.y < game.rangeLevelMin.y)
+        {
+            targetPos.y = game.rangeLevelMin.y;
+        }
+        else if (targetPos.y > game.rangeLevelMax.y)
+        {
+            targetPos.y = game.rangeLevelMax.y;
+        }
         //Debug.Log(targetPos.z);
         Vector3 posForce = targetPos - transform.position;
         //rb.AddForce(force.x, force.y, force.z, ForceMode.Force);

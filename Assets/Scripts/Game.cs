@@ -39,11 +39,14 @@ public class Game : MonoBehaviour {
 
     public ScreenDarken screenDarken;
 
+    public StartMenu startMenu;
+
     private float survivedTime;
     private float currTimePeriod;
     private int timePeriodCount;
 
     private bool _isStarted;
+    private bool _isStartingProcedure;
 
 
 
@@ -56,6 +59,7 @@ public class Game : MonoBehaviour {
         leap_controller.DeviceFailure += OnDeviceFailure;
 
         _isStarted = false;
+        _isStartingProcedure = false;
         screenDarken.setOpacity(0f);
 
         survivedTime = 0f;
@@ -91,7 +95,7 @@ public class Game : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        Debug.Log("Mic Loudness" + micInput.getLoudness());
+        //Debug.Log("Mic Loudness" + micInput.getLoudness());
 	}
 
     private void FixedUpdate()
@@ -111,17 +115,22 @@ public class Game : MonoBehaviour {
         //Debug.Log(leap_leftHandPos.z);
         //Debug.Log(leap_rightHandPos.z);
 
-
-        if (leap_hands.Count == 2)
+        if (!_isStarted && leap_hands.Count == 0)
         {
-            updateHandPositions();
-
-            if (!_isStarted)
-            {
-                startGame();
-            }
+            startMenu.noHandDetected();
+        } else if (!_isStarted && leap_hands.Count == 1)
+        {
+            startMenu.oneHandDetected(leap_hands[0]);
+        } else if (!_isStarted && leap_hands.Count == 2)
+        {
+            startMenu.twoHandsDetected(Time.deltaTime);
         }
 
+        if(_isStartingProcedure)
+        {
+            updateHandPositions();
+            player._update();
+        }
 
         if (_isStarted) {
 
@@ -130,6 +139,7 @@ public class Game : MonoBehaviour {
                 return;
             }
 
+            updateHandPositions();
             player._update();
             checkGestures();
             checkLeavingSensorArea();
@@ -321,17 +331,17 @@ public class Game : MonoBehaviour {
                         break;
                 }
             }
-            Debug.Log(leap_hands[i].GrabAngle);
+            //Debug.Log(leap_hands[i].GrabAngle);
 
             if( (i == 0 && leap_hands.Count > i && leap_hands[i].PalmPosition.x < leap_hands[(i+1)].PalmPosition.x) || 
                 (i == 1 && leap_hands[i].PalmPosition.x < leap_hands[(i - 1)].PalmPosition.x) )
             {
-                leftHandClosedWithoutThumb = indexClosed && middleClosed && ringClosed && pinkyClosed && (leap_hands[i].GrabAngle > 3f);
-                leftHandClosed = thumbClosed && leftHandClosedWithoutThumb;
+                leftHandClosedWithoutThumb = !thumbClosed && indexClosed && middleClosed && ringClosed && pinkyClosed && (leap_hands[i].GrabAngle > 3f);
+                leftHandClosed = thumbClosed && indexClosed && middleClosed && ringClosed && pinkyClosed && (leap_hands[i].GrabAngle > 3f);
             } else
             {
-                rightHandClosedWithoutThumb = indexClosed && middleClosed && ringClosed && pinkyClosed && (leap_hands[i].GrabAngle > 3f);
-                rightHandClosed = thumbClosed && rightHandClosedWithoutThumb;
+                rightHandClosedWithoutThumb = !thumbClosed && indexClosed && middleClosed && ringClosed && pinkyClosed && (leap_hands[i].GrabAngle > 3f);
+                rightHandClosed = thumbClosed && indexClosed && middleClosed && ringClosed && pinkyClosed && (leap_hands[i].GrabAngle > 3f);
             }            
         }
 
@@ -359,24 +369,26 @@ public class Game : MonoBehaviour {
 
     private void checkMicrophone()
     {
-        if(micInput.getLoudness() > 0.1f)
+        float maxVelocity = 5f;
+        float loudness = micInput.getLoudness() * 0.5f;
+        float velocity = loudness + ball.rb.velocity.x;
+        float scaleYL = 0f;
+        float scaleYR = 0f;
+
+        audioBarL.GetComponent<Renderer>().material.color = audioBarL_Color;
+        audioBarR.GetComponent<Renderer>().material.color = audioBarR_Color;
+        scaleYL = convertToNewRange(new Vector3(loudness, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(0, 0, 0), new Vector3(audioBarL_InitScaleY, 0, 0)).x;
+        scaleYR = convertToNewRange(new Vector3(loudness, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(0, 0, 0), new Vector3(audioBarR_InitScaleY, 0, 0)).x;
+        audioBarL.transform.localScale = new Vector3(audioBarL.transform.localScale.x, scaleYL, audioBarL.transform.localScale.z);
+        audioBarR.transform.localScale = new Vector3(audioBarR.transform.localScale.x, scaleYR, audioBarR.transform.localScale.z);
+
+        if (micInput.getLoudness() > 0.2f && velocity < maxVelocity)
         {
-            float loudness = micInput.getLoudness() * 1.1f;
-
-            ball.rb.velocity = new Vector3(ball.rb.velocity.x + loudness, ball.rb.velocity.y, ball.rb.velocity.z);
-            audioBarL.GetComponent<Renderer>().material.color = audioBarL_Color;
-            audioBarR.GetComponent<Renderer>().material.color = audioBarR_Color;
-
-            float scaleYL = convertToNewRange(new Vector3(loudness, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(0, 0, 0), new Vector3(audioBarL_InitScaleY, 0, 0)).x;
-            float scaleYR = convertToNewRange(new Vector3(loudness, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(0, 0, 0), new Vector3(audioBarR_InitScaleY, 0, 0)).x;
-
-            audioBarL.transform.localScale = new Vector3(audioBarL.transform.localScale.x, scaleYL, audioBarL.transform.localScale.z);
-            audioBarR.transform.localScale = new Vector3(audioBarR.transform.localScale.x, scaleYR, audioBarR.transform.localScale.z);
-        } else
-        {
-            audioBarL.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
-            audioBarR.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
+            ball.rb.velocity = new Vector3(velocity, ball.rb.velocity.y, ball.rb.velocity.z);      
         }
+
+        //audioBarL.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
+        //audioBarR.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
     }
 
     private void doLevel_01()
@@ -397,11 +409,20 @@ public class Game : MonoBehaviour {
     public void startGame()
     {
         _isStarted = true;
+        _isStartingProcedure = false;
         ball.useGravity(true);
     }
     public bool isStarted()
     {
         return _isStarted;
+    }
+    public bool isStartingProcedure()
+    {
+        return _isStartingProcedure;
+    }
+    public void setIsStartingProcedure(bool isSTartingProcedure)
+    {
+        _isStartingProcedure = isSTartingProcedure;
     }
     public void setShootPossible(bool shootPossible)
     {
