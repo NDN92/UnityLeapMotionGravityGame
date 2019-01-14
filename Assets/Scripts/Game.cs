@@ -20,9 +20,9 @@ public class Game : MonoBehaviour {
     private Vector3 rightHandPos = new Vector3(0f, 0f, 0f);
 
 
-
-    public TextObj timeText;
-    public TextObj levelText;
+    public TextObj lifesText;
+    public TextObj timeText;    
+    public TextObj levelText;    
     public Player player;
     public Ball ball;
     public GameObject enemies;
@@ -41,6 +41,7 @@ public class Game : MonoBehaviour {
 
     public StartMenu startMenu;
 
+    private int lifesCount;
     private float survivedTime;
     private float currTimePeriod;
     private int timePeriodCount;
@@ -62,6 +63,7 @@ public class Game : MonoBehaviour {
         _isStartingProcedure = false;
         screenDarken.setOpacity(0f);
 
+        lifesCount = 3;
         survivedTime = 0f;
         currTimePeriod = 0f;
         timePeriodCount = 1;
@@ -412,6 +414,28 @@ public class Game : MonoBehaviour {
         _isStartingProcedure = false;
         ball.useGravity(true);
     }
+
+    public void endGame()
+    {
+        startMenu.setIsGameOver(true);
+        startMenu.updateScores(timeText.getText());
+
+        _isStarted = false;
+        _isStartingProcedure = false;
+        ball.useGravity(false);
+        ball.resetPosition();
+
+        lifesCount = 3;
+        survivedTime = 0f;
+        currTimePeriod = 0f;
+        timePeriodCount = 1;
+
+        timeText.updateText_Time(survivedTime);
+        updateLifes(lifesCount);
+
+        screenDarken.setOpacity(0f);       
+    }
+
     public bool isStarted()
     {
         return _isStarted;
@@ -427,6 +451,33 @@ public class Game : MonoBehaviour {
     public void setShootPossible(bool shootPossible)
     {
         this.shootPossible = shootPossible;
+    }
+
+    public void updateLifes(int lifes)
+    {
+        lifesCount = lifes;
+        string lifesAsText = "";
+        for(int i = 0; i < lifes; i++)
+        {
+            if(i == 0)
+            {
+                lifesAsText += "•";
+            }
+            else
+            {
+                lifesAsText += " •";
+            }
+        }
+        lifesText.updateText(lifesAsText);
+
+        if(lifes < 1)
+        {
+            endGame();
+        }
+    }
+    public void lifesMinusOne()
+    {
+        updateLifes(--lifesCount);
     }
 
     public Vector3 getLeap_leftHandPos()

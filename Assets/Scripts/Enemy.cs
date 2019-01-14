@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour {
 
+    public Game game;
+
 	// Use this for initialization
 	void Start () {
 		
@@ -20,6 +22,9 @@ public class Enemy : MonoBehaviour {
         {
             Ball ball = collision.gameObject.GetComponents<Ball>()[0];
             ball.resetPosition();
+
+            game.lifesMinusOne();
+
             Destroy(gameObject);
         }
         if (collision.gameObject.GetComponents<Ground>().Length > 0)

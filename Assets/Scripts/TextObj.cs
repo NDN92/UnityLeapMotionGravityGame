@@ -42,4 +42,9 @@ public class TextObj : MonoBehaviour
 
         textMesh.text = text;
     }
+
+    public string getText()
+    {
+        return textMesh.text;
+    }
 }

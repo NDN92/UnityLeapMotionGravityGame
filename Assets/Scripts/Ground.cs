@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Ground : MonoBehaviour {
 
+    public Game game;
+
 	// Use this for initialization
 	void Start () {
 		
@@ -20,6 +22,8 @@ public class Ground : MonoBehaviour {
         {
             Ball ball = collision.gameObject.GetComponents<Ball>()[0];
             ball.resetPosition();
+
+            game.lifesMinusOne();
         }
     }
 }
